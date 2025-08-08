@@ -1,5 +1,7 @@
 import sys
+import os
 
+from dotenv import load_dotenv
 from typing import List
 from textwrap import dedent
 from pydantic import BaseModel, Field
@@ -13,15 +15,16 @@ from agno.tools.duckduckgo import DuckDuckGoTools
 from map_tools import GoogleMapsTool
 from prompts import system_prompt_travel_agent,expected_output,instructions
 
+load_dotenv()
 
- 
-EXA_API_KEY = 'AIzaSyAKnhvpcKTcxE3aaIv5BHzBfhQ1OaNuRdk'
-MAPS_API_KEY = 'af427766-3a25-4c54-aec8-f68938e2525d'
+api_key = os.getenv("AZURE_OPENAI_API_KEY")
+api_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+api_version = os.getenv("AZURE_OPENAI_API_VERSION")
+api_deployment = os.getenv("AZURE_OPENAI_DEPLOYMENT")
 
-AZURE_OPENAI_API_KEY="605566d0ec2247c2931469a31bdbbf5a"
-AZURE_OPENAI_ENDPOINT="https://botminds-alpha-ai.openai.azure.com/"
-AZURE_OPENAI_API_VERSION="2023-03-15-preview"
-AZURE_OPENAI_DEPLOYMENT="gpt-4o"
+exa_api_key = os.getenv("EXA_API_KEY")
+maps_api_key = os.getenv("MAPS_API_KEY")
+
 
 # data models
 class MapURL(BaseModel):
@@ -38,14 +41,14 @@ class Inputs(BaseModel):
     budget : int = Field(None , description="The total budget for the trip")
 
 
-model = AzureOpenAI(api_key=AZURE_OPENAI_API_KEY,azure_endpoint=AZURE_OPENAI_ENDPOINT,azure_deployment=AZURE_OPENAI_DEPLOYMENT,api_version=AZURE_OPENAI_API_VERSION )
+model = AzureOpenAI(api_key=api_key,azure_endpoint=api_endpoint,azure_deployment=api_deployment,api_version=api_version )
 
 
 # agents
 travel_planning_agent = Agent(
     name='Travel Planning Agent',
     model=model,
-    tools=[ExaTools(api_key=EXA_API_KEY)],
+    tools=[ExaTools(api_key=exa_api_key)],
     description=system_prompt_travel_agent,
     instructions=instructions, 
     expected_output=expected_output,
@@ -57,7 +60,7 @@ map_agent = Agent(
     name = 'Google Map Agent',
     model = model,
     description="You are equipped with Google Map tools to extract place ID ",
-    tools = [GoogleMapsTool(api_key=MAPS_API_KEY)],
+    tools = [GoogleMapsTool(api_key=maps_api_key)],
     debug_mode=False
 )
 
